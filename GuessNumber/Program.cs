@@ -69,7 +69,10 @@ namespace GuessGame
                     max = 100;
                 }
             }
-            Console.WriteLine($"最佳次数是{best}次");
+            if (best == int.MaxValue)
+                Console.WriteLine("本次没有猜中过，暂无纪录");
+            else
+                Console.WriteLine($"最佳次数是{best}次");
         }
     }
 }
