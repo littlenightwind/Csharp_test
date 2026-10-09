@@ -100,6 +100,13 @@ namespace ScoreManager
                 Console.WriteLine("没有任何学生成绩！");
             }
         }
+        public void PrintPassed()
+        {
+            foreach(var s in students.Where(s =>s.Score >= 60).OrderByDescending(s => s.Score))
+            {
+                s.PrintInfo();
+            }
+        }
     }
     class Program
     {
@@ -118,6 +125,7 @@ namespace ScoreManager
 5. 显示全部
 6. 显示所有学生（按成绩从高到低）
 7. 显示统计信息（平均分/最高分/最低分）
+8. 查询及格学生
 0. 退出程序
 ");
                 input = Console.ReadLine() ?? "";
@@ -188,6 +196,9 @@ namespace ScoreManager
                         break;
                     case "7":
                         manager.PrintStats();
+                        break;
+                    case "8":
+                        manager.PrintPassed();
                         break;
                 }
             }
