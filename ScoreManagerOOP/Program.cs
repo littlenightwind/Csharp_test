@@ -4,17 +4,35 @@ namespace ScoreManager
 {
     class Student
     {
+        public Student(string name, int score)
+        {
+            Name = name; 
+            Score = score;
+        }
         public void PrintInfo()
         {
             Console.WriteLine($"{Name}，{Score}");
         }
         public string Name
         {
-            get; set;
+            get; private set;
         }
         public int Score
         {
-            get; set;
+            get; private set;
+        }
+        public void SetScore(int newscore)
+        {
+            if(newscore < 0 || newscore > 100)
+            {
+                Console.WriteLine(@"成绩必须在0~100之间!" +
+                    "修改失败！");
+            }
+            else
+            {
+                Score = newscore;
+                Console.WriteLine("已成功修改！");
+            }
         }
     }
     class ScoreManager
@@ -26,13 +44,15 @@ namespace ScoreManager
             {
                 Console.WriteLine("已存在该学生，添加失败！");
             }
-            else
+            else if(score >= 0 && score <= 100)
             {
-                Student student = new Student();
-                student.Name = name;
-                student.Score = score;
+                Student student = new Student(name,score);
                 students.Add(student);
                 Console.WriteLine("已成功添加！");
+            }
+            else
+            {
+                Console.WriteLine("分数超出范围，添加失败！");
             }
         }
         public void Remove(string name)
@@ -51,8 +71,7 @@ namespace ScoreManager
         {
             if (students.Any(s => s.Name == name))
             {
-                students.Find(s => s.Name == name).Score = newScore;
-                Console.WriteLine("已成功修改！");
+                students.Find(s => s.Name == name).SetScore(newScore);
             }
             else
             {
