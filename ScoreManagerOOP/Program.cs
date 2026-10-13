@@ -34,6 +34,17 @@ namespace ScoreManager
                 Console.WriteLine("已成功修改！");
             }
         }
+        public override string ToString() 
+        {
+            return $"{Name},{Score}";
+        }
+        public static Student Parse(string line) 
+        {
+            string[] parts = line.Split(',');
+            if (int.TryParse(parts[1], out int score))
+                return new Student(parts[0], score);
+            else return new Student("错误",0);
+        }
     }
     class ScoreManager
     {
@@ -126,6 +137,22 @@ namespace ScoreManager
                 s.PrintInfo();
             }
         }
+        public void Save()
+        {
+            File.WriteAllLines("scoremanager.txt", students.Select(s => s.ToString()));
+        }
+        public void Load()
+        {
+            if (File.Exists("scoremanager.txt"))
+            {
+                foreach (string line in File.ReadAllLines("scoremanager.txt"))
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    Student s = Student.Parse(line);
+                    students.Add(s);
+                }
+            }
+        }
     }
     class Program
     {
@@ -134,6 +161,7 @@ namespace ScoreManager
             string input;
             string[] parts;
             ScoreManager manager = new ScoreManager();
+            manager.Load();
             while (true)
             {
                 Console.WriteLine(@"===== 成绩管理器 =====
@@ -151,6 +179,7 @@ namespace ScoreManager
                 if (input == null || input == "0")
                 {
                     Console.WriteLine("已退出程序！");
+                    manager.Save();
                     break;
                 }
                 switch (input)
