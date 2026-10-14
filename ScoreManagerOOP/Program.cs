@@ -1,63 +1,73 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 namespace ScoreManager
 {
     class Student
     {
-        public Student(string name, int score)
+        public Student(string name, int math, int english)
         {
-            Name = name; 
-            Score = score;
+            Name = name;
+            Math = math;
+            English = english;
         }
         public void PrintInfo()
         {
-            Console.WriteLine($"{Name}，{Score}");
+            Console.WriteLine($"学生姓名：{Name}，数学成绩：{Math}，英语成绩：{English}");
         }
         public string Name
         {
             get; private set;
         }
-        public int Score
+        public int Math
         {
             get; private set;
         }
-        public void SetScore(int newscore)
+        public int English
         {
-            if(newscore < 0 || newscore > 100)
+            get; private set;
+        }
+        public bool SetScore(int newmath, int newenglish)
+        {
+            if (newmath < 0 || newmath > 100 || newenglish < 0 || newenglish > 100)
             {
-                Console.WriteLine(@"成绩必须在0~100之间!" +
-                    "修改失败！");
+                return false;
             }
             else
             {
-                Score = newscore;
-                Console.WriteLine("已成功修改！");
+                Math = newmath;
+                English = newenglish;
+                return true;
             }
         }
-        public override string ToString() 
+        public override string ToString()
         {
-            return $"{Name},{Score}";
+            return $"{Name},{Math},{English}";
         }
-        public static Student Parse(string line) 
+        public static Student Parse(string line)
         {
             string[] parts = line.Split(',');
-            if (int.TryParse(parts[1], out int score))
-                return new Student(parts[0], score);
-            else return new Student("错误",0);
+            if (parts.Length == 3)
+            {
+                if (int.TryParse(parts[1], out int math) && int.TryParse(parts[2], out int english))
+                    return new Student(parts[0], math, english);
+                else return null;
+            }
+            else return null;
         }
     }
     class ScoreManager
     {
         private List<Student> students = new List<Student>();
-        public void Add(string name, int score)
+        public void Add(string name, int math, int english)
         {
             if (students.Any(s => s.Name == name))
             {
                 Console.WriteLine("已存在该学生，添加失败！");
             }
-            else if(score >= 0 && score <= 100)
+            else if (math >= 0 && math <= 100 && english >= 0 && english <= 100)
             {
-                Student student = new Student(name,score);
+                Student student = new Student(name, math, english);
                 students.Add(student);
                 Console.WriteLine("已成功添加！");
             }
@@ -78,15 +88,15 @@ namespace ScoreManager
                 Console.WriteLine("未存在该学生，删除失败！");
             }
         }
-        public void Update(string name, int newScore)
+        public bool Update(string name, int newMath, int newEnglish)
         {
             if (students.Any(s => s.Name == name))
             {
-                students.Find(s => s.Name == name).SetScore(newScore);
+                return students.Find(s => s.Name == name).SetScore(newMath, newEnglish);
             }
             else
             {
-                Console.WriteLine("未存在该学生，修改失败！");
+                return false;
             }
         }
         public void Find(string name)
@@ -110,7 +120,7 @@ namespace ScoreManager
         }
         public void PrintAllScore()
         {
-            var scoreAlls = students.OrderByDescending(s => s.Score);
+            var scoreAlls = students.OrderByDescending(s => s.Math + s.English);
             foreach (var scoreAll in scoreAlls)
             {
                 scoreAll.PrintInfo();
@@ -118,11 +128,11 @@ namespace ScoreManager
         }
         public void PrintStats()
         {
-            if(students.Count > 0)
+            if (students.Count > 0)
             {
-                double avg = students.Average(s => s.Score);
-                double max = students.Max(s => s.Score);
-                double min = students.Min(s => s.Score);
+                double avg = students.Average(s => s.Math + s.English);
+                double max = students.Max(s => s.Math + s.English);
+                double min = students.Min(s => s.Math + s.English);
                 Console.WriteLine($"平均值是{avg}，最大值是{max}，最小值是{min}");
             }
             else
@@ -132,7 +142,7 @@ namespace ScoreManager
         }
         public void PrintPassed()
         {
-            foreach(var s in students.Where(s =>s.Score >= 60).OrderByDescending(s => s.Score))
+            foreach (var s in students.Where(s => s.Math >= 60 && s.English >= 60).OrderByDescending(s => s.Math + s.English))
             {
                 s.PrintInfo();
             }
@@ -149,6 +159,8 @@ namespace ScoreManager
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
                     Student s = Student.Parse(line);
+                    Student error = new Student ("错误", 0, 0 );
+                    if(s != null)
                     students.Add(s);
                 }
             }
@@ -192,13 +204,13 @@ namespace ScoreManager
                             break;
                         }
                         parts = input.Split(',');
-                        if (parts.Length != 2 || !int.TryParse(parts[1], out int score1))
+                        if (parts.Length != 3 || !int.TryParse(parts[1], out int math) || !int.TryParse(parts[2], out int english))
                         {
                             Console.WriteLine("非法输入！");
                         }
                         else
                         {
-                            manager.Add(parts[0], score1);
+                            manager.Add(parts[0], math,english);
                         }
                         break;
                     case "2":
@@ -218,13 +230,20 @@ namespace ScoreManager
                             break;
                         }
                         parts = input.Split(",");
-                        if (parts.Length != 2 || !int.TryParse(parts[1], out int score2))
+                        if (parts.Length != 3 || !int.TryParse(parts[1], out int score1) || !int.TryParse(parts[2], out int score2))
                         {
                             Console.WriteLine("非法输入！");
                         }
                         else
                         {
-                            manager.Update(parts[0], score2);
+                            if(manager.Update(parts[0], score1, score2))
+                            {
+                                Console.WriteLine("已成功修改！");
+                            }
+                            else
+                            {
+                                Console.WriteLine("修改失败！");
+                            }
                         }
                         break;
                     case "4":
