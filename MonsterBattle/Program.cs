@@ -2,7 +2,14 @@
 
 namespace MonsterBattle
 {
-    class Monster
+    interface IDamageable
+    {
+        int HP { get; }
+        string Name { get; }
+        bool IsDead { get; }
+        void TakeDamage(int damage);
+    }
+    class Role : IDamageable
     {
         public string Name
         {
@@ -19,7 +26,8 @@ namespace MonsterBattle
             get;
             protected set;
         }
-        public Monster(string name, int HP, int ATK)
+        public bool IsDead => HP <= 0;
+        public Role(string name, int HP, int ATK)
         {
             this.Name = name;
             this.HP = HP;
@@ -29,25 +37,24 @@ namespace MonsterBattle
         {
             Console.WriteLine($"{Name}发动了进攻");
         }
-        public virtual void Attack(Monster monster)
+        public virtual void Attack(IDamageable target)
         {
-            monster.HPDown(this);
-            if(monster.HP > 0)
+            target.TakeDamage(ATK);
+            if (!target.IsDead)
             {
-                Console.WriteLine($"{monster.Name}当前生命值为{monster.HP}");
+                Console.WriteLine($"{target.Name}当前生命值为{target.HP}");
             }
             else
             {
-                Console.WriteLine($"{monster.Name}已死亡");
+                Console.WriteLine($"{target.Name}已死亡");
             }
-            
         }
-        public void HPDown(Monster monster)
+        public void TakeDamage(int damage)
         {
-            HP -= monster.ATK;
+            HP -= damage;
         }
     }
-    class Silme : Monster
+    class Silme : Role
     {
         public Silme(string name, int HP, int ATK) : base(name, HP, ATK) { }
         public override void Attack()
@@ -55,7 +62,7 @@ namespace MonsterBattle
             Console.WriteLine($"{Name}发动了弹跳撞击");
         }
     }
-    class Goblin : Monster
+    class Goblin : Role
     {
         public Goblin(string name, int HP, int ATK) : base(name, HP, ATK) { }
         public override void Attack()
@@ -63,7 +70,7 @@ namespace MonsterBattle
             Console.WriteLine($"{Name}投出了长矛");
         }
     }
-    class Dragon : Monster //Boss
+    class Dragon : Role //Boss
     {
         private int HPmax;
         public Dragon(string name, int HP, int ATK) : base(name, HP, ATK)
@@ -75,40 +82,73 @@ namespace MonsterBattle
         {
             Console.WriteLine($"{Name}发动龙之吐息");
         }
-        public override void Attack(Monster monster)
+        public override void Attack(IDamageable target)
         {
             if (HP * 2 > HPmax)
             {
                 Console.WriteLine($"{Name}发动了怒吼，伤害翻倍");
-                for(int i = 0; i < 2; i++)
+                for (int i = 0; i < 2; i++)
                 {
-                    monster.HPDown(this);
+                    target.TakeDamage(ATK);
                 }
-                if (monster.HP > 0)
-                    Console.WriteLine($"{monster.Name}当前生命值为{monster.HP}");
+                if (!target.IsDead)
+                    Console.WriteLine($"{target.Name}当前生命值为{target.HP}");
                 else
-                    Console.WriteLine($"{monster.Name}已死亡");
+                    Console.WriteLine($"{target.Name}已死亡");
             }
             else
             {
-                monster.HPDown(this);
-                if (monster.HP > 0)
-                    Console.WriteLine($"{monster.Name}当前生命值为{monster.HP}");
+                target.TakeDamage(ATK);
+                if (!target.IsDead)
+                    Console.WriteLine($"{target.Name}当前生命值为{target.HP}");
                 else
-                    Console.WriteLine($"{monster.Name}已死亡");
+                    Console.WriteLine($"{target.Name}已死亡");
             }
         }
+    }
+    class Player : Role, IDamageable
+    {
+        public Player(string name, int HP, int ATK) : base(name, HP, ATK) { }
+        public void Attack(IDamageable target)
+        {
+            Console.WriteLine("玩家发动进攻");
+            target.TakeDamage(ATK);
+            if (!target.IsDead)
+            {
+                Console.WriteLine($"{target.Name}当前生命值为{target.HP}");
+            }
+            else
+            {
+                Console.WriteLine($"{target.Name}已死亡");
+            }
+        }
+        public void TakeDamage(int damage)
+        {
+            HP -= damage;
+        }
+
     }
     class Program
     {
         static void Main(string[] args)
         {
-            List<Monster> list = new List<Monster> { new Silme("火史莱姆", 10, 2),new Goblin("哥布林投矛手",6,2),new Silme("水史莱姆",7,3),new Goblin("精英哥布林投矛手",7,3),new Dragon("绒翼龙",10,3) };
-            foreach(Monster monster in list)
+            List<Role> list = new List<Role> { new Silme("火史莱姆", 10, 2), new Goblin("哥布林投矛手", 6, 2), new Silme("水史莱姆", 7, 3), new Goblin("精英哥布林投矛手", 7, 3), new Dragon("绒翼龙", 10, 3), new Role("战士", 15, 2) };
+            while (!list[5].IsDead && !list[4].IsDead)
             {
-                monster.Attack();
+                list[5].Attack(list[4]);
+                if (list[4].IsDead)
+                {
+                    Console.WriteLine("玩家获胜");
+                    break;
+                }
+                list[4].Attack(list[5]);
+                if (list[5].IsDead)
+                {
+                    Console.WriteLine("怪物获胜");
+                    break;
+                }
             }
-            list[4].Attack(list[3]);
+
         }
     }
 }
