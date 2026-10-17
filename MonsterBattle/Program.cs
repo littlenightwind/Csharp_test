@@ -106,7 +106,7 @@ namespace MonsterBattle
             }
         }
     }
-    class Player : Role, IDamageable
+    class Player : Role
     {
         public Player(string name, int HP, int ATK) : base(name, HP, ATK) { }
         public void Attack(IDamageable target)
